@@ -10,7 +10,7 @@ For simplicity, these examples set the client secret. Keep in mind that embeddin
 
 Create the OAuth instance:
 
-```
+```java
 OAuth oauth = new OAuth("slack", "yourClientID",
 	"yourRedirectURL",
 	"https://slack.com/oauth/authorize", // authorize URL
@@ -22,7 +22,7 @@ oauth.setClientSecret("yourClientSecret"); // Note security implications below.
 
 Create/load and initialize a `Token` instance:
 
-```
+```java
 Token token = ... // Load token from disk.
 if (oauth.authorize(token)) {
 	// Save token to disk.
@@ -31,7 +31,7 @@ if (oauth.authorize(token)) {
 
 Finally, use the access token to make requests:
 
-```
+```java
 // Slack access tokens never expire, so just use the access token.
 HttpGet request = new HttpGet("https://slack.com/api/dnd.setSnooze?num_minutes=60");
 request.setHeader("Authorization", "Bearer " + token.accessToken);
@@ -40,7 +40,7 @@ httpRequest(request);
 
 ### Spotify
 
-```
+```java
 oauth = new OAuth("spotify", "yourClientID",
 	"yourRedirectURL",
 	"https://accounts.spotify.com/authorize", // authorize URL
@@ -69,7 +69,7 @@ httpRequest(request);
 
 ### Google
 
-```
+```java
 oauth = new OAuth("google", "yourClientID",
 	"urn:ietf:wg:oauth:2.0:oob", // redirect URL
 	"https://accounts.google.com/o/oauth2/v2/auth", // authorize URL
@@ -109,7 +109,7 @@ If a client secret has been set, the default implementation opens the specified 
 
 If a client secret has not been set, then the `obtainAccessToken` method must be overridden:
 
-```
+```java
 oauth = new OAuth("someService", "yourClientID",
 	"yourRedirectURL",
 	"serviceAuthorizeURL",
@@ -139,7 +139,7 @@ As you can see, obtaining the access token requires your client secret, which en
 
 [JsonBeans](https://github.com/EsotericSoftware/jsonbeans/) is used by the `OAuth` class and makes it easy to save/load the `Token` instance:
 
-```
+```java
 File file = ...
 Json json = new Json();
 Token token = file.exists() ? json.fromJson(Token.class, file) : new Token();
@@ -152,7 +152,7 @@ if (oauth.authorize(token)) {
 
 Most of the examples above use [Apache HttpClient](https://hc.apache.org/httpcomponents-client-ga/), which the `OAuth` class depends on. Here is the `httpRequest` method:
 
-```
+```java
 int connectionPoolSize = 4;
 PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
 connectionManager.setMaxTotal(connectionPoolSize);
