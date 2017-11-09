@@ -1,6 +1,6 @@
 # Simple OAuth for Java
 
-This library is a single, ~150 LOC class which makes using OAuth from Java very easy.
+This library is a single, ~150 LOC class which makes using OAuth 2.0 from Java very easy.
 
 ## Examples
 

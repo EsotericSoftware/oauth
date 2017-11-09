@@ -83,12 +83,11 @@ public class OAuth {
 	 * @return true when a new access token was needed. */
 	public boolean authorize (Token token) throws IOException {
 		if (token.accessToken != null) return false;
-		obtainAccessToken(token,
-			authorizeURL //
-				+ "?client_id=" + URLEncoder.encode(clientID, "UTF-8") //
-				+ "&response_type=code" //
-				+ "&redirect_uri=" + URLEncoder.encode(redirectURL, "UTF-8") //
-				+ "&scope=" + URLEncoder.encode(scopes, "UTF-8"));
+		obtainAccessToken(token, authorizeURL //
+			+ "?client_id=" + URLEncoder.encode(clientID, "UTF-8") //
+			+ "&response_type=code" //
+			+ "&redirect_uri=" + URLEncoder.encode(redirectURL, "UTF-8") //
+			+ "&scope=" + URLEncoder.encode(scopes, "UTF-8"));
 		return true;
 	}
 
@@ -144,12 +143,6 @@ public class OAuth {
 		}
 
 		if (INFO) info(category, "Access token stored.");
-	}
-
-	/** Sets the client secret for obtaining an access token. See {@link #obtainAccessToken(Token, String)} for the security
-	 * implications of embedded the client secret in your application. */
-	public void setClientSecret (String clientSecret) {
-		this.clientSecret = clientSecret;
 	}
 
 	/** Refreshes the access token, if necessary. Call this method just before each use of the access token. Some OAuth access
@@ -220,6 +213,37 @@ public class OAuth {
 				}
 			}
 		}
+	}
+
+	public String getClientID () {
+		return clientID;
+	}
+
+	/** @return May be null. */
+	public String getClientSecret () {
+		return clientSecret;
+	}
+
+	/** Sets the client secret for obtaining an access token. See {@link #obtainAccessToken(Token, String)} for the security
+	 * implications of embedded the client secret in your application. */
+	public void setClientSecret (String clientSecret) {
+		this.clientSecret = clientSecret;
+	}
+
+	public String getRedirectURL () {
+		return redirectURL;
+	}
+
+	public String getAuthorizeURL () {
+		return authorizeURL;
+	}
+
+	public String getAccessTokenURL () {
+		return accessTokenURL;
+	}
+
+	public String getScopes () {
+		return scopes;
 	}
 
 	static public class Token {
