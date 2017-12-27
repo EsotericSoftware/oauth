@@ -166,7 +166,7 @@ public class OAuth {
 					+ "&grant_type=refresh_token");
 			token.accessToken = json.getString("access_token");
 			token.expirationMillis = System.currentTimeMillis() + json.getInt("expires_in") * 1000;
-			if (INFO) info(category, "Access token refreshed.");
+			if (DEBUG) debug(category, "Access token refreshed.");
 			return true;
 		} catch (Throwable ex) {
 			if (ERROR) error(category, "Error refreshing access token" + (json != null ? ": " + json : "."), ex);
