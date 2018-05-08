@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="libs/commons-codec-1.10-shaded.jar"/>
 	<classpathentry kind="lib" path="libs/commons-logging-1.2-shaded.jar"/>
-	<classpathentry kind="lib" path="libs/httpclient-4.5.3-shaded.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/httpclient-4.5.3-shaded.jar"/>
 	<classpathentry kind="lib" path="libs/httpcore-4.4.6-shaded.jar"/>
 	<classpathentry kind="lib" path="libs/jsonbeans-0.9.jar"/>
 	<classpathentry kind="lib" path="libs/minlog-1.2.jar"/>
