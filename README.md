@@ -1,6 +1,6 @@
 # Simple OAuth for Java
 
-This library is a single, ~150 LOC class which makes using OAuth 2.0 from Java very easy.
+This library is a single file which makes using OAuth 2.0 from Java very easy.
 
 ## Examples
 
@@ -59,12 +59,28 @@ if (oauth.authorize(token)) {
 ...
 
 // Spotify access tokens expire, so call refreshAccessToken just before using the access token.
-if (oauth.refreshAccessToken(token)) {
-	// Save token to disk.
+private boolean refreshToken () {
+	return switch (oauth.refreshAccessToken(state.token)) {
+	case valid -> true; // Hasn't expired yet.
+	case refreshed -> {
+		// Save refreshed token to disk.
+		yield true;
+	}
+	case revoked -> { // Need to authorize again.
+		if (oauth.authorize(token)) {
+			// Save new token to disk.
+			yield true;
+		}
+		yield false;
+	}
+	case failed -> false;
+	};
 }
-HttpPut request = new HttpPut("https://api.spotify.com/v1/me/player/play");
-request.setHeader("Authorization", "Bearer " + accessToken);
-httpRequest(request);
+if (refreshToken()) {
+	HttpPut request = new HttpPut("https://api.spotify.com/v1/me/player/play");
+	request.setHeader("Authorization", "Bearer " + accessToken);
+	httpRequest(request);
+}
 ```
 
 ### Google
@@ -90,15 +106,14 @@ if (oauth.authorize(token)) {
 EmbeddedAssistantGrpc.EmbeddedAssistantStub client;
 client = EmbeddedAssistantGrpc.newStub(ManagedChannelBuilder.forAddress("embeddedassistant.googleapis.com", 443).build());
 
-if (oauth.refreshAccessToken(token)) {
-	// Save token to disk.
+if (refreshToken()) { // From above.
+	// Google's stuff to set the access token.
+	OAuth2Credentials credentials = new OAuth2Credentials(new AccessToken(accessToken, new Date(expirationTime)));
+	client = client.withCallCredentials(MoreCallCredentials.from(credentials));
+	// Google's stuff to use the Google Assistant API.
+	StreamObserver<ConverseResponse> observer = ...
+	client.converse(observer);
 }
-// Google's stuff to set the access token.
-OAuth2Credentials credentials = new OAuth2Credentials(new AccessToken(accessToken, new Date(expirationTime)));
-client = client.withCallCredentials(MoreCallCredentials.from(credentials));
-// Google's stuff to use the Google Assistant API.
-StreamObserver<ConverseResponse> observer = ...
-client.converse(observer);
 ```
 
 ## Security
@@ -107,7 +122,7 @@ The examples above embed the client secret in the application, which only makes 
 
 If a client secret has been set, the default implementation opens the specified URL in a browser and prompts the user to paste the authorization code at the command line. Next the authorization code and client secret are used to obtain an access token, which is ready for the application to use.
 
-If a client secret has not been set, then the `obtainAccessToken` method must be overridden:
+If a client secret has not been set, then the `obtainAuthorizationCode` method must be overridden:
 
 ```java
 oauth = new OAuth("someService", "yourClientID",
@@ -117,13 +132,13 @@ oauth = new OAuth("someService", "yourClientID",
 	"serviceScopes", 
 	4
 ) {
-	protected void obtainAccessToken (Token token, String url) throws IOException {
+	protected void obtainAuthorizationCode (String authorizationUrl) throws IOException {
 		// your code here
 	}
 }
 ```
 
-The `obtainAccessToken` method should have the user visit the specified `url` and allow access. Then the user is forwarded with a one-time use authorization code to `yourRedirectURL`, which is your web service that uses the authorization code to obtain an access token, refresh token, and expiration milliseconds. The application should retrieve those from your web service and set the corresponding 3 fields on the specified `token`. The web service should only give the access token to authenticated users.
+The `obtainAuthorizationCode` method should have the user visit the specified `url` and allow access. Then the user is forwarded with a one-time use authorization code to `yourRedirectURL`, which is your web service that uses the authorization code to obtain an access token, refresh token, and expiration milliseconds. The application should retrieve those from your web service and set the corresponding 3 fields on the specified `token`. The web service should only give the access token to authenticated users.
 
 The web service obtains the access token, refresh token, and expiration milliseconds by doing an HTTP POST to `serviceAccessTokenURL` with a POST body of:
 
@@ -131,7 +146,7 @@ The web service obtains the access token, refresh token, and expiration millisec
 code=usersAuthorizationCode&redirect_uri=yourRedirectURL&client_id=yourClientID&client_secret=yourClientSecret&grant_type=authorization_code
 ```
 
-As you can see, obtaining the access token requires your client secret, which ensures only your app can approve access. Your web service ensures the client secret is not leaked and only gives an access token to users it has authenticated.
+Obtaining the access token requires your client secret which is only accessible to your web service, ensuring only your app can approve access. Your web service ensures the client secret is not leaked and only gives an access token to users it has authenticated.
 
 ## Utilities
 
