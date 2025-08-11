@@ -1,4 +1,4 @@
-/* Copyright (c) 2017, Nathan Sweet
+/* Copyright (c) 2017-2025, Nathan Sweet
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following
@@ -30,19 +30,20 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
 import com.esotericsoftware.jsonbeans.JsonReader;
 import com.esotericsoftware.jsonbeans.JsonValue;
 
 import java.awt.Desktop;
-
-import shaded.org.apache.http.HttpEntity;
-import shaded.org.apache.http.client.methods.CloseableHttpResponse;
-import shaded.org.apache.http.client.methods.HttpPost;
-import shaded.org.apache.http.entity.StringEntity;
-import shaded.org.apache.http.impl.client.CloseableHttpClient;
-import shaded.org.apache.http.impl.client.HttpClients;
-import shaded.org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import shaded.org.apache.http.util.EntityUtils;
 
 /** @author Nathan Sweet */
 public class OAuth {
@@ -63,10 +64,11 @@ public class OAuth {
 		this.accessTokenURL = accessTokenURL;
 		this.scopes = scopes;
 
-		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-		connectionManager.setMaxTotal(connectionPoolSize);
-		connectionManager.setDefaultMaxPerRoute(connectionPoolSize);
-		http = HttpClients.custom().setConnectionManager(connectionManager).build();
+		PoolingHttpClientConnectionManager manager = PoolingHttpClientConnectionManagerBuilder.create() //
+			.setMaxConnTotal(connectionPoolSize) //
+			.setMaxConnPerRoute(connectionPoolSize) //
+			.build();
+		http = HttpClients.custom().setConnectionManager(manager).build();
 	}
 
 	public OAuth (String category, String clientID, String redirectURL, String authorizeURL, String accessTokenURL, String scopes,
@@ -226,9 +228,9 @@ public class OAuth {
 				}
 			}
 
-			int status = response.getStatusLine().getStatusCode();
+			int status = response.getCode();
 			if (status < 200 || status >= 300)
-				throw new OAuthException(response.getStatusLine().toString() + (body.length() > 0 ? "\n" + body : ""), body);
+				throw new OAuthException(status + " " + response.getReasonPhrase() + (body.length() > 0 ? "\n" + body : ""), body);
 			return new JsonReader().parse(body);
 		} finally {
 			if (entity != null) EntityUtils.consumeQuietly(entity);
